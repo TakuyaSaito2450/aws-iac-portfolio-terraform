@@ -133,3 +133,4 @@ aws ec2 describe-security-groups --filters "Name=group-name,Values=sre-demo-web-
 ## 今後の構成予定
 - プライベートサブネットを使ったRDS構成。
 - CloudWatchによるログ監視の自動化を組む。
+- EC2をプライベートサブネットに移行し、NATゲートウェイ経由でアウトバウンド通信を制御する構成に発展させる予定。
