@@ -17,8 +17,8 @@
 | Subnet             | パブリックサブネットを2つ作成（AZ: a, c）でマルチAZ構成を意識   |
 | Internet Gateway   | VPCをインターネットに接続するためのIGW                      |
 | Route Table        | IGWへのルート（0.0.0.0/0）を設定し、各サブネットに紐付け        |
-| Security Group     | HTTP(80), HTTPS(443), SSH(22) のインバウンドを許可            |
-| Key Pair           | EC2へSSH接続するための鍵を作成し利用                         |
+| Security Group     | HTTP(80), HTTPS(443) を全許可、SSH(22) は検証用に許可（本番では特定IPに制限推奨）            |
+| Key Pair           | EC2へSSH接続するための鍵を作成し利用（本番環境ではSSM Session Manager推奨）                        |
 | EC2                | Amazon Linux 2（Nginxインストール済み）のWebサーバー         |
 | ALB                | パブリックALBを構成し、リクエストをEC2へ転送                 |
 | Target Group       | EC2インスタンスを登録してALBからのトラフィックを受信         |
