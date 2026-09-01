@@ -21,3 +21,8 @@ variable "key_name" {
   description = "your-key-name"
   type        = string
 }
+
+variable "allowed_ssh_cidr" {
+  description = "SSH接続を許可するCIDRブロック（例: 自宅グローバルIP/32）"
+  type        = string
+}
