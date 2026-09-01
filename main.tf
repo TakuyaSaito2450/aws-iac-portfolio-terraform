@@ -124,22 +124,11 @@ resource "aws_route_table_association" "public_2" {
 # セキュリティグループ（Webサーバー用）
 # SSHとHTTPだけ許可。送信は全部OK。
 
-resource "aws_security_group" "web_sg" {
-  name   = "${var.project_name}-web-sg"
+# ALB用SG：インターネットから80番を受ける
+resource "aws_security_group" "alb_sg" {
+  name   = "${var.project_name}-alb-sg"
   vpc_id = aws_vpc.main.id
 
-  # インバウンドルール（受信）
-  # ポート22 (SSH) 
-  # 学習環境用に設定。
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.allowed_ssh_cidr]  
-  }
-
-  # ポート80 (HTTP) 
-  # Webサービスとして外部公開するため
   ingress {
     from_port   = 80
     to_port     = 80
@@ -147,13 +136,42 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # アウトバウンドルール（送信）
-  # 全トラフィックを外部に許可
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"         
-    cidr_blocks = ["0.0.0.0/0"]  
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-alb-sg"
+  }
+}
+
+# EC2用SG：ALBからの80番と、管理者IPからのSSHのみ許可
+resource "aws_security_group" "web_sg" {
+  name   = "${var.project_name}-web-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]  # ALBのSGからのみ許可
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.allowed_ssh_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -242,7 +260,7 @@ resource "aws_lb" "web_alb" {
 
   # ALBを複数AZ（public_1, public_2）に配置して高可用性を確保
   subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id]
-  security_groups    = [aws_security_group.web_sg.id]
+  security_groups    = [aws_security_group.alb_sg.id]
 
   tags = {
     Name = "${var.project_name}-alb"
