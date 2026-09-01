@@ -166,42 +166,14 @@ resource "aws_security_group" "web_sg" {
 # ===============================
 # AMI IDはリージョンや時期によって変わるため、ハードコードせず
 # 常に最新のAmazon Linux 2 AMIを取得する設計とした。
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 resource "aws_instance" "web" {
-  ami           = data.aws_ami.amazon_linux_2.id
-}
-  # 無料利用枠の対象である t2.micro を使用。
-  # 小規模な学習用に選択。
-  instance_type = "t2.micro"
+  ami                          = data.aws_ami.amazon_linux_2.id
+  instance_type                = "t2.micro"
+  subnet_id                    = aws_subnet.public_1.id
+  key_name                     = var.key_name
+  vpc_security_group_ids       = [aws_security_group.web_sg.id]
+  associate_public_ip_address  = true
 
-  # パブリックサブネットに配置。インターネットからアクセスできる環境とする。
-  subnet_id     = aws_subnet.public_1.id
-
-  # EC2へSSH接続するために使用するキーペア名を指定。
-  key_name      = var.key_name
-
-  # セキュリティグループを割り当てて、必要な通信（SSH, HTTPなど）を許可。
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-
-  # パブリックIPを自動割り当て。外部ネットワークから直接アクセス可能にする。
-  associate_public_ip_address = true
-
-  # EC2起動時にNginxをインストール・起動するユーザーデータを定義。
-  # → 簡易的なWebサーバーとしての動作をすぐに確認できる。
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
@@ -221,43 +193,13 @@ resource "aws_instance" "web" {
 # パブリックサブネット（public_2）内に配置し、Nginx をインストール・起動する構成。
 # Web サーバー用のセキュリティグループを適用し、外部アクセス（80/22番）も許可。
 resource "aws_instance" "web_2" {
+  ami                          = data.aws_ami.amazon_linux_2.id
+  instance_type                = "t2.micro"
+  subnet_id                    = aws_subnet.public_2.id
+  key_name                     = var.key_name
+  vpc_security_group_ids       = [aws_security_group.web_sg.id]
+  associate_public_ip_address  = true
 
-  # AMI IDはリージョンや時期によって変わるため、ハードコードせず
-　# 常に最新のAmazon Linux 2 AMIを取得する設計とした。
-　data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-resource "aws_instance" "web_2" {
-  ami           = data.aws_ami.amazon_linux_2.id
-}
-  # 無料枠対応のインスタンスタイプ
-  instance_type = "t2.micro"
-
-  # パブリックサブネットに配置。インターネットからアクセスできる環境とする。
-  subnet_id = aws_subnet.public_2.id 
-
-  # SSH接続に使用するキーペア
-  key_name = var.key_name
-
-  # アタッチするセキュリティグループ
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-
-  # パブリックIPを付与して外部から接続可能に
-  associate_public_ip_address = true
-
-  # インスタンス初回起動時に実行するスクリプト（Nginxインストール＆起動）
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
