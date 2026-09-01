@@ -164,10 +164,22 @@ resource "aws_security_group" "web_sg" {
 # ===============================
 # EC2インスタンス（1台目）
 # ===============================
-# 学習用のWebサーバーとして、シンプルな構成で起動。
-resource "aws_instance" "web" {
-  # Amazon Linux 2 は軽量かつ学習向けに選択。東京リージョン用のAMI IDを使用。
-  ami = "ami-0c3fd0f5d33134a76"
+# AMI IDはリージョンや時期によって変わるため、ハードコードせず
+# 常に最新のAmazon Linux 2 AMIを取得する設計とした。
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
 
   # 無料利用枠の対象である t2.micro を使用。
   # 小規模な学習用に選択。
@@ -207,8 +219,22 @@ resource "aws_instance" "web" {
 # Web サーバー用のセキュリティグループを適用し、外部アクセス（80/22番）も許可。
 resource "aws_instance" "web_2" {
 
-  # Amazon Linux 2 は軽量かつ学習向けに選択。
-  ami = "ami-0c3fd0f5d33134a76"
+  # AMI IDはリージョンや時期によって変わるため、ハードコードせず
+　# 常に最新のAmazon Linux 2 AMIを取得する設計とした。
+　data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
 
   # 無料枠対応のインスタンスタイプ
   instance_type = "t2.micro"
