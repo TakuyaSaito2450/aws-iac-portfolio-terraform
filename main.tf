@@ -183,7 +183,7 @@ data "aws_ami" "amazon_linux_2" {
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.amazon_linux_2.id
-
+}
   # 無料利用枠の対象である t2.micro を使用。
   # 小規模な学習用に選択。
   instance_type = "t2.micro"
@@ -241,7 +241,7 @@ resource "aws_instance" "web_2" {
 
 resource "aws_instance" "web_2" {
   ami           = data.aws_ami.amazon_linux_2.id
-
+}
   # 無料枠対応のインスタンスタイプ
   instance_type = "t2.micro"
 
