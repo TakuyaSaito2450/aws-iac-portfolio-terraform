@@ -121,10 +121,7 @@ resource "aws_route_table_association" "public_2" {
 # ===============================
 # Security Group（セキュリティグループ）の作成
 # ===============================
-# セキュリティグループ（Webサーバー用）
-# SSHとHTTPだけ許可。送信は全部OK。
-
-# ALB用SG：インターネットから80番を受ける
+# ALB用（インターネットから80番）と、EC2用（ALBからのみ80番＋管理者からSSH）に分離
 resource "aws_security_group" "alb_sg" {
   name   = "${var.project_name}-alb-sg"
   vpc_id = aws_vpc.main.id
@@ -289,8 +286,7 @@ resource "aws_lb_target_group" "web_tg" {
 }
 
 # -----------------------------------------
-# ALBのリスナー設定
-# 80番ポートで受けたリクエストをターゲットグループに転送
+# ターゲットグループへのEC2インスタンス登録
 # -----------------------------------------
 resource "aws_lb_listener" "web_listener" {
   load_balancer_arn = aws_lb.web_alb.arn
